@@ -1,0 +1,33 @@
+# Environnement local : `docker compose up -d db` pour la base seule,
+# ou `docker compose up --build` pour la base + l'API.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: applytrack
+      POSTGRES_USER: applytrack
+      POSTGRES_PASSWORD: applytrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U applytrack -d applytrack"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/applytrack
+      DATABASE_USER: applytrack
+      DATABASE_PASSWORD: applytrack
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
