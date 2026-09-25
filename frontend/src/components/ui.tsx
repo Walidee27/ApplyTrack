@@ -1,19 +1,34 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { Link } from 'react-router'
 import { buttonClass, type ButtonVariant } from '../lib/button'
-import { useTheme } from '../lib/theme'
 
-/** Logo : trois colonnes de kanban de hauteur décroissante. */
+/** Pictogramme avion, en trait, dans la couleur de signalisation. */
+export function PlaneIcon({ className = 'h-6 w-6' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`text-brand ${className}`}
+      aria-hidden="true"
+    >
+      <path d="M2 16l20-7-3 9-6-2-3 4-1-5z" />
+    </svg>
+  )
+}
+
 export function Logo({ withName = true, className = '' }: { withName?: boolean; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
-      <svg viewBox="0 0 32 32" className="h-7 w-7 shrink-0" aria-hidden="true">
-        <rect width="32" height="32" rx="8" className="fill-brand" />
-        <rect x="7" y="8" width="5" height="16" rx="1.5" className="fill-on-brand" />
-        <rect x="13.5" y="8" width="5" height="11" rx="1.5" className="fill-on-brand" fillOpacity=".75" />
-        <rect x="20" y="8" width="5" height="7" rx="1.5" className="fill-on-brand" fillOpacity=".5" />
-      </svg>
-      {withName && <span className="text-lg font-bold tracking-tight">ApplyTrack</span>}
+    <span className={`inline-flex items-center gap-2.5 ${className}`}>
+      <PlaneIcon />
+      {withName && (
+        <span className="text-xl font-extrabold tracking-wide uppercase" style={{ fontStretch: '75%' }}>
+          ApplyTrack
+        </span>
+      )}
     </span>
   )
 }
@@ -27,37 +42,50 @@ export function Button({ variant = 'primary', size = 'md', className = '', type 
   return <button type={type} className={`${buttonClass(variant, size)} ${className}`} {...props} />
 }
 
-export function ButtonLink({ to, children, variant = 'primary', size = 'md' }: {
+export function ButtonLink({ to, children, variant = 'primary', size = 'md', className = '' }: {
   to: string
   children: ReactNode
   variant?: ButtonVariant
   size?: 'md' | 'lg'
+  className?: string
 }) {
   return (
-    <Link to={to} className={buttonClass(variant, size)}>
+    <Link to={to} className={`${buttonClass(variant, size)} ${className}`}>
       {children}
     </Link>
   )
 }
 
-export function ThemeToggle() {
-  const { theme, toggle } = useTheme()
-  const isDark = theme === 'dark'
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      className={buttonClass('ghost')}
-      aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-      title={isDark ? 'Mode clair' : 'Mode sombre'}
-    >
-      <span aria-hidden="true">{isDark ? '☀️' : '🌙'}</span>
-    </button>
-  )
+export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`border border-line bg-surface ${className}`}>{children}</div>
 }
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl bg-surface shadow-sm ring-1 ring-line ${className}`}>{children}</div>
+/** Chiffres sur palettes, comme les panneaux à affichage rabattable. */
+export function FlapDigits({ value, unit, accent = false }: { value: string; unit?: string; accent?: boolean }) {
+  return (
+    <span className="flex items-end gap-1" aria-label={unit ? `${value} ${unit}` : value}>
+      {[...value].map((char, index) =>
+        /[0-9]/.test(char) ? (
+          <span
+            key={index}
+            aria-hidden="true"
+            className={`flex h-14 w-10 items-center justify-center border-t border-line-strong bg-surface-muted font-mono text-4xl font-bold sm:h-[4.5rem] sm:w-[3.25rem] sm:text-5xl ${accent ? 'text-brand' : ''}`}
+          >
+            {char}
+          </span>
+        ) : (
+          <span key={index} aria-hidden="true" className={`font-mono text-4xl font-bold sm:text-5xl ${accent ? 'text-brand' : ''}`}>
+            {char}
+          </span>
+        ),
+      )}
+      {unit && (
+        <span aria-hidden="true" className="pl-1.5 font-mono text-2xl text-ink-faint">
+          {unit}
+        </span>
+      )}
+    </span>
+  )
 }
 
 export function Spinner({ className = '' }: { className?: string }) {

@@ -26,6 +26,8 @@ export function ApplicationCard({ application, followUpAfterDays, onEdit }: Appl
         company={application.company}
         title={application.title}
         location={application.location}
+        appliedOn={application.appliedOn}
+        status={application.status}
         days={daysSince(application.statusChangedAt)}
         toFollowUp={needsFollowUp(application, followUpAfterDays)}
         highlighted={isDragging}
@@ -34,10 +36,10 @@ export function ApplicationCard({ application, followUpAfterDays, onEdit }: Appl
             type="button"
             onPointerDown={(event) => event.stopPropagation()}
             onClick={() => onEdit(application)}
-            className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-ink-faint hover:bg-surface-muted hover:text-ink"
+            className="-my-1 px-1.5 py-1 font-mono text-[11px] underline-offset-2 hover:underline"
             aria-label={`Modifier la candidature ${application.company}`}
           >
-            Modifier
+            MODIFIER
           </button>
         }
       />

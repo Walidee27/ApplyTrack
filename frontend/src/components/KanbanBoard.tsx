@@ -9,7 +9,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core'
 import { APPLICATION_STATUSES, type ApplicationStatus, type JobApplication } from '../api/types'
-import { STATUS_COLORS, STATUS_LABELS, groupByStatus, isApplicationStatus } from '../lib/status'
+import { STATUS_COLORS, STATUS_FLIGHT_LABELS, STATUS_LABELS, groupByStatus, isApplicationStatus } from '../lib/status'
 import { ApplicationCard } from './ApplicationCard'
 
 interface KanbanBoardProps {
@@ -40,7 +40,7 @@ export function KanbanBoard({ applications, followUpAfterDays, onMove, onEdit }:
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       {/* Colonnes de largeur minimale fixe : sur petit écran, le tableau défile horizontalement,
           colonne par colonne sur mobile */}
-      <div className="-mx-4 grid snap-x snap-mandatory auto-cols-[85%] grid-flow-col gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:snap-none sm:auto-cols-[minmax(15rem,1fr)] sm:px-0">
+      <div className="-mx-4 grid snap-x snap-mandatory auto-cols-[85%] grid-flow-col gap-3 overflow-x-auto px-4 pb-4 sm:mx-0 sm:snap-none sm:auto-cols-[minmax(15rem,1fr)] sm:px-0">
         {APPLICATION_STATUSES.map((status) => (
           <KanbanColumn
             key={status}
@@ -69,20 +69,27 @@ function KanbanColumn({ status, applications, followUpAfterDays, onEdit }: Kanba
   return (
     <section
       ref={setNodeRef}
-      aria-label={STATUS_LABELS[status]}
-      className={`min-h-72 snap-start rounded-2xl p-3 transition-colors ${isOver ? 'bg-brand-soft ring-2 ring-brand' : 'bg-surface-muted'}`}
+      aria-label={`${STATUS_LABELS[status]} (${STATUS_FLIGHT_LABELS[status]})`}
+      className={`flex min-h-72 snap-start flex-col border transition-colors ${isOver ? 'border-brand bg-brand-soft' : 'border-line bg-surface'}`}
     >
-      <header className="mb-3 flex items-center gap-2 px-1">
-        <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[status]}`} aria-hidden="true" />
-        <h2 className="text-sm font-semibold">{STATUS_LABELS[status]}</h2>
-        <span className="ml-auto rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-ink-muted ring-1 ring-line">
-          {applications.length}
-        </span>
+      <header className="border-b border-line px-4 py-3.5">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-[1.35rem] leading-none font-extrabold uppercase" style={{ fontStretch: '75%' }}>
+            {STATUS_LABELS[status]}s
+          </h2>
+          <span className="border border-line-strong bg-canvas px-2 py-0.5 font-mono text-sm">
+            {String(applications.length).padStart(2, '0')}
+          </span>
+        </div>
+        <p className="mt-1.5 flex items-center gap-2 board-label text-[11px] text-ink-faint">
+          <span className={`h-2 w-2 ${STATUS_COLORS[status]}`} aria-hidden="true" />
+          {STATUS_FLIGHT_LABELS[status]}
+        </p>
       </header>
-      <div className="space-y-2">
+      <div className="flex flex-1 flex-col gap-2.5 p-3">
         {applications.length === 0 && (
-          <p className="rounded-xl border border-dashed border-line px-3 py-6 text-center text-xs text-ink-faint">
-            Glisse une carte ici
+          <p className="border border-dashed border-line px-3 py-6 text-center board-label text-[11px] text-ink-faint">
+            Aucun vol
           </p>
         )}
         {applications.map((application) => (

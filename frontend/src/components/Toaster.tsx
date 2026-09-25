@@ -10,9 +10,9 @@ export function Toaster() {
         <div
           key={t.id}
           role={t.tone === 'error' ? 'alert' : 'status'}
-          className="pointer-events-auto flex items-center gap-3 rounded-xl bg-ink px-4 py-3 text-sm font-medium text-canvas shadow-lg"
+          className={`pointer-events-auto flex items-center gap-3 px-4 py-3 font-mono text-xs font-bold tracking-wider uppercase shadow-lg ${t.tone === 'error' ? 'bg-danger text-on-brand' : 'bg-ink text-canvas'}`}
         >
-          <span aria-hidden="true">{t.tone === 'error' ? '⚠️' : '✓'}</span>
+          <span aria-hidden="true">{t.tone === 'error' ? '!' : '✓'}</span>
           {t.message}
           <button
             type="button"

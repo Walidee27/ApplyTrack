@@ -1,28 +1,43 @@
 import { useQuery } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { statsApi } from '../api/endpoints'
 import { APPLICATION_STATUSES, type Stats } from '../api/types'
+import { FlapDigits, Spinner } from '../components/ui'
 import { WeeklyChart } from '../components/WeeklyChart'
-import { STATUS_COLORS, STATUS_LABELS } from '../lib/status'
+import { STATUS_COLORS, STATUS_FLIGHT_LABELS, STATUS_LABELS } from '../lib/status'
 
-const percent = (ratio: number) => `${Math.round(ratio * 100)} %`
+const percentValue = (ratio: number) => String(Math.round(ratio * 100))
 
 export function StatsPage() {
   const { data: stats, isLoading, isError } = useQuery({ queryKey: ['stats'], queryFn: statsApi.get })
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold tracking-tight">Statistiques</h1>
+      <header className="pt-8 pb-6">
+        <p className="board-label text-ink-faint">12 dernières semaines</p>
+        <h1 className="mt-1.5 board-title text-6xl sm:text-7xl">Bilan de vol</h1>
+      </header>
 
-      {isLoading && <p className="text-ink-muted">Chargement…</p>}
-      {isError && <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-danger">Impossible de charger les statistiques.</p>}
+      {isLoading && (
+        <p className="flex items-center gap-2 font-mono text-sm text-ink-muted">
+          <Spinner /> Chargement du bilan…
+        </p>
+      )}
+      {isError && (
+        <p role="alert" className="border border-danger bg-danger-soft px-4 py-3 font-mono text-sm text-danger">
+          Impossible de charger les statistiques.
+        </p>
+      )}
       {stats && stats.total === 0 && (
-        <div className="rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-line">
-          <p className="font-medium">Pas encore de statistiques</p>
-          <p className="mt-1 text-sm text-ink-muted">
+        <div className="border border-line bg-surface p-10 text-center">
+          <p className="text-3xl font-extrabold uppercase" style={{ fontStretch: '75%' }}>
+            Aucun vol enregistré
+          </p>
+          <p className="mt-3 text-ink-muted">
             Ajoute tes premières candidatures depuis le{' '}
-            <Link to="/app" className="font-medium text-brand hover:underline">
-              tableau
+            <Link to="/app" className="font-bold text-brand hover:underline">
+              tableau des départs
             </Link>
             .
           </p>
@@ -36,23 +51,31 @@ export function StatsPage() {
 function StatsContent({ stats }: { stats: Stats }) {
   const average = stats.averageResponseDays
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatTile label="Candidatures" value={String(stats.total)} />
-        <StatTile label="Taux de réponse" value={percent(stats.responseRate)} hint="Entretien, offre ou refus" />
-        <StatTile label="Taux d'entretien" value={percent(stats.interviewRate)} hint="Entretien ou offre" />
-        <StatTile
-          label="Délai moyen de réponse"
-          value={average === null ? '—' : `${average.toFixed(1).replace('.', ',')} j`}
-          hint={average === null ? 'Aucune réponse pour l’instant' : 'Entre l’envoi et la première réponse'}
-        />
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatTile label="Vols programmés" hint="candidatures envoyées">
+          <FlapDigits value={String(stats.total).padStart(2, '0')} />
+        </StatTile>
+        <StatTile label="Taux de réponse" hint="entretien, offre ou refus">
+          <FlapDigits value={percentValue(stats.responseRate)} unit="%" />
+        </StatTile>
+        <StatTile label="Taux d'embarquement" hint="entretien ou offre">
+          <FlapDigits value={percentValue(stats.interviewRate)} unit="%" />
+        </StatTile>
+        <StatTile label="Délai moyen de réponse" hint="entre l'envoi et la 1re réponse" highlighted>
+          {average === null ? (
+            <p className="flex h-14 items-center font-mono text-sm text-ink-muted sm:h-[4.5rem]">Aucune réponse pour l'instant</p>
+          ) : (
+            <FlapDigits value={average.toFixed(1).replace('.', ',')} unit="J" accent />
+          )}
+        </StatTile>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line lg:col-span-2">
+      <div className="grid gap-3 lg:grid-cols-3">
+        <section className="border border-line bg-surface p-6 lg:col-span-2">
           <WeeklyChart weeks={stats.weekly} />
         </section>
-        <section className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
+        <section className="border border-line bg-surface p-6">
           <StatusBreakdown stats={stats} />
         </section>
       </div>
@@ -60,12 +83,17 @@ function StatsContent({ stats }: { stats: Stats }) {
   )
 }
 
-function StatTile({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function StatTile({ label, hint, highlighted, children }: {
+  label: string
+  hint: string
+  highlighted?: boolean
+  children: ReactNode
+}) {
   return (
-    <div className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
-      <p className="text-sm text-ink-muted">{label}</p>
-      <p className="mt-1 text-2xl font-bold tabular-nums sm:text-3xl">{value}</p>
-      {hint && <p className="mt-1 text-xs text-ink-faint">{hint}</p>}
+    <div className={`border bg-surface p-5 ${highlighted ? 'border-brand' : 'border-line'}`}>
+      <p className={`board-label text-[11px] ${highlighted ? 'text-brand' : 'text-ink-faint'}`}>{label}</p>
+      <div className="mt-4">{children}</div>
+      <p className="mt-3 font-mono text-xs text-ink-muted">{hint}</p>
     </div>
   )
 }
@@ -75,26 +103,25 @@ function StatusBreakdown({ stats }: { stats: Stats }) {
   const max = Math.max(...APPLICATION_STATUSES.map((s) => stats.byStatus[s]), 1)
   return (
     <div>
-      <h2 className="mb-4 font-semibold">Où en sont mes candidatures</h2>
-      <ul className="space-y-3">
+      <h2 className="text-3xl font-extrabold uppercase" style={{ fontStretch: '75%' }}>
+        État du trafic
+      </h2>
+      <ul className="mt-5 space-y-4 font-mono text-xs sm:text-sm">
         {APPLICATION_STATUSES.map((status) => {
           const count = stats.byStatus[status]
+          const share = `${percentValue(count / stats.total)} %`
           return (
-            <li key={status} title={`${STATUS_LABELS[status]} : ${count} (${percent(count / stats.total)})`}>
-              <div className="mb-1 flex justify-between text-sm">
-                <span className="flex items-center gap-2">
-                  <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[status]}`} aria-hidden="true" />
-                  {STATUS_LABELS[status]}
+            <li key={status} title={`${STATUS_LABELS[status]} : ${count} (${share})`}>
+              <div className="mb-1.5 flex justify-between gap-2 uppercase">
+                <span>
+                  {STATUS_FLIGHT_LABELS[status]} · {STATUS_LABELS[status]}s
                 </span>
-                <span className="text-ink-muted tabular-nums">
-                  {count} · {percent(count / stats.total)}
+                <span className="shrink-0 text-ink-muted tabular-nums">
+                  {count} · {share}
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-surface-muted">
-                <div
-                  className={`h-2 rounded-full ${STATUS_COLORS[status]}`}
-                  style={{ width: `${(count / max) * 100}%` }}
-                />
+              <div className="h-2 bg-surface-muted">
+                <div className={`h-2 ${STATUS_COLORS[status]}`} style={{ width: `${(count / max) * 100}%` }} />
               </div>
             </li>
           )

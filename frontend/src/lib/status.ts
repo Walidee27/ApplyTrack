@@ -8,8 +8,16 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   REJECTED: 'Refusée',
 }
 
+/** Équivalent « tableau des départs » de chaque statut, affiché sous son nom réel. */
+export const STATUS_FLIGHT_LABELS: Record<ApplicationStatus, string> = {
+  APPLIED: "À l'heure",
+  FOLLOW_UP: 'En approche',
+  INTERVIEW: 'Embarquement',
+  OFFER: 'Décollé',
+  REJECTED: 'Annulé',
+}
+
 // Couleurs définies dans index.css (--color-status-*), vérifiées pour le daltonisme
-// en mode clair comme en mode sombre
 export const STATUS_COLORS: Record<ApplicationStatus, string> = {
   APPLIED: 'bg-status-applied',
   FOLLOW_UP: 'bg-status-follow-up',

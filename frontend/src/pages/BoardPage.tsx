@@ -7,8 +7,8 @@ import { useAuth } from '../auth/useAuth'
 import { ApplicationForm } from '../components/ApplicationForm'
 import { KanbanBoard } from '../components/KanbanBoard'
 import { Modal } from '../components/Modal'
-import { Button, Card, Spinner } from '../components/ui'
-import { STATUS_LABELS, needsFollowUp } from '../lib/status'
+import { Button, Card, PlaneIcon, Spinner } from '../components/ui'
+import { STATUS_LABELS, daysSince, needsFollowUp } from '../lib/status'
 import { toast } from '../lib/toast'
 
 const QUERY_KEY = ['applications']
@@ -80,41 +80,63 @@ export function BoardPage() {
 
   const saveError = saveMutation.error instanceof ApiError ? saveMutation.error : null
   const followUpAfterDays = user?.reminderAfterDays ?? 7
-  const toFollowUpCount = applications.filter((a) => needsFollowUp(a, followUpAfterDays)).length
+  // Candidatures « retardées », de la plus ancienne à la plus récente, pour le bandeau INFO TRAFIC
+  const delayed = applications
+    .filter((a) => needsFollowUp(a, followUpAfterDays))
+    .map((a) => ({ company: a.company, days: daysSince(a.statusChangedAt) }))
+    .sort((a, b) => b.days - a.days)
 
   return (
     <div>
-      <header className="mb-6 flex flex-wrap items-center gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Mes candidatures</h1>
-          <p className="mt-1 text-sm text-ink-muted">
-            {applications.length} candidature{applications.length > 1 ? 's' : ''}
-            {toFollowUpCount > 0 && ` · ${toFollowUpCount} à relancer`}
-          </p>
+      {delayed.length > 0 && (
+        <div
+          role="status"
+          className="-mx-4 flex flex-wrap items-center gap-x-5 gap-y-1 bg-brand px-4 py-2.5 font-mono text-xs text-on-brand sm:-mx-8 sm:px-8"
+        >
+          <span className="font-bold tracking-wider">INFO TRAFIC</span>
+          <span>
+            {delayed.length} candidature{delayed.length > 1 ? 's' : ''} retardée{delayed.length > 1 ? 's' : ''} ·{' '}
+            {delayed
+              .slice(0, 4)
+              .map((d) => `${d.company} ${d.days} j`)
+              .join(' · ')}
+            {delayed.length > 4 ? ' · …' : ''} · pense à relancer
+          </span>
         </div>
-        <Button onClick={() => setEditing({ mode: 'create' })} className="ml-auto">
-          + Nouvelle candidature
+      )}
+
+      <header className="flex flex-wrap items-end gap-4 pt-8 pb-6">
+        <div>
+          <p className="board-label text-ink-faint">Terminal personnel</p>
+          <h1 className="mt-1.5 board-title text-6xl sm:text-7xl">
+            Départs <span className="text-ink-faint">{String(applications.length).padStart(2, '0')}</span>
+          </h1>
+        </div>
+        <Button onClick={() => setEditing({ mode: 'create' })} size="lg" className="ml-auto" title="Ajouter une candidature">
+          + Nouveau vol
         </Button>
       </header>
 
       {isLoading && (
-        <p className="flex items-center gap-2 text-ink-muted">
-          <Spinner /> Chargement…
+        <p className="flex items-center gap-2 font-mono text-sm text-ink-muted">
+          <Spinner /> Chargement du tableau…
         </p>
       )}
       {isError && (
-        <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-danger">
+        <p role="alert" className="border border-danger bg-danger-soft px-4 py-3 font-mono text-sm text-danger">
           Impossible de charger les candidatures.
         </p>
       )}
       {!isLoading && !isError && applications.length === 0 && (
         <Card className="mx-auto max-w-lg px-6 py-12 text-center">
-          <span className="text-4xl" aria-hidden="true">📋</span>
-          <h2 className="mt-4 text-lg font-semibold">Ton tableau est vide</h2>
-          <p className="mt-2 text-sm text-ink-muted">
-            Ajoute ta première candidature : elle apparaîtra dans la colonne « Envoyée », prête à être suivie.
+          <PlaneIcon className="mx-auto h-10 w-10" />
+          <h2 className="mt-5 text-3xl font-extrabold uppercase" style={{ fontStretch: '75%' }}>
+            Aucun départ prévu
+          </h2>
+          <p className="mt-3 text-ink-muted">
+            Ajoute ta première candidature : elle apparaîtra dans la colonne « Envoyées », prête à décoller.
           </p>
-          <Button onClick={() => setEditing({ mode: 'create' })} className="mt-6">
+          <Button onClick={() => setEditing({ mode: 'create' })} size="lg" className="mt-8">
             + Ajouter une candidature
           </Button>
         </Card>
@@ -139,7 +161,7 @@ export function BoardPage() {
             onCancel={closeModal}
           />
           {saveError && Object.keys(saveError.fieldErrors).length === 0 && (
-            <p role="alert" className="mt-3 rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{saveError.message}</p>
+            <p role="alert" className="mt-3 border border-danger bg-danger-soft px-3 py-2 font-mono text-sm text-danger">{saveError.message}</p>
           )}
         </Modal>
       )}

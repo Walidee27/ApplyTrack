@@ -1,25 +1,28 @@
 import { describe, expect, it } from 'vitest'
-import { avatarTone, initials } from './avatar'
+import { flightCode, passengerName } from './avatar'
 
-describe('initials', () => {
-  it('prend la première lettre des deux premiers mots', () => {
-    expect(initials('Société Générale')).toBe('SG')
-    expect(initials('Dassault Systèmes')).toBe('DS')
+describe('flightCode', () => {
+  it('prend les initiales des noms en plusieurs mots', () => {
+    expect(flightCode('Société Générale')).toBe('SG')
+    expect(flightCode('BNP Paribas')).toBe('BP')
   })
 
-  it('prend les deux premières lettres d’un nom en un seul mot', () => {
-    expect(initials('Doctolib')).toBe('DO')
+  it('prend les trois premières lettres d’un nom en un seul mot, sans accents', () => {
+    expect(flightCode('Doctolib')).toBe('DOC')
+    expect(flightCode('Écolab')).toBe('ECO')
   })
 
   it('gère les tirets, apostrophes et espaces superflus', () => {
-    expect(initials('  Hewlett-Packard ')).toBe('HP')
-    expect(initials("L'Oréal")).toBe('LO')
-    expect(initials('')).toBe('?')
+    expect(flightCode('  Hewlett-Packard ')).toBe('HP')
+    expect(flightCode("L'Oréal")).toBe('LO')
+    expect(flightCode('')).toBe('???')
   })
 })
 
-describe('avatarTone', () => {
-  it('donne toujours la même teinte à une même entreprise, sans tenir compte de la casse', () => {
-    expect(avatarTone('Qonto')).toBe(avatarTone('qonto'))
+describe('passengerName', () => {
+  it('abrège le prénom comme sur une liste de passagers', () => {
+    expect(passengerName('Walide Ghazanfar')).toBe('W. GHAZANFAR')
+    expect(passengerName('Compte démo')).toBe('C. DÉMO')
+    expect(passengerName('Walide')).toBe('WALIDE')
   })
 })
