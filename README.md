@@ -43,7 +43,7 @@ Le back est découpé par fonctionnalité (`auth`, `user`, `jobapplication`), av
 
 ## 🚀 Lancer le projet en local
 
-Prérequis : **Java 21**, **Maven**, **Node.js 24** et **Docker**.
+Prérequis : **Java 21**, **Node.js 24** et **Docker**. Maven n'est pas nécessaire : le projet embarque le Maven Wrapper (`mvnw`).
 
 ```bash
 # 1. Base de données
@@ -51,7 +51,7 @@ docker compose up -d db
 
 # 2. API (http://localhost:8080, doc sur /swagger-ui.html)
 cd backend
-mvn spring-boot:run
+./mvnw spring-boot:run
 
 # 3. Front-end (http://localhost:5173)
 cd frontend
@@ -71,7 +71,7 @@ Variables d'environnement de l'API (toutes ont une valeur par défaut pour le d�
 ## 🧪 Tests
 
 ```bash
-cd backend && mvn verify       # tests unitaires + tests d'intégration (Docker requis)
+cd backend && ./mvnw verify      # tests unitaires + tests d'intégration (Docker requis)
 cd frontend && npm test        # tests Vitest
 ```
 

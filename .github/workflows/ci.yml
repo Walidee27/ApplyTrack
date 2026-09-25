@@ -20,7 +20,7 @@ jobs:
           java-version: 21
           cache: maven
       # "verify" lance les tests unitaires puis les tests d'intégration Testcontainers (Docker est dispo sur les runners)
-      - run: mvn -B verify
+      - run: ./mvnw -B verify
       - name: Construction de l'image Docker
         run: docker build -t applytrack-api .
 

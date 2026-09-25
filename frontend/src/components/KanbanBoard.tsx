@@ -33,7 +33,8 @@ export function KanbanBoard({ applications, onMove, onEdit }: KanbanBoardProps) 
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="grid gap-4 overflow-x-auto pb-4 md:grid-cols-5">
+      {/* Colonnes de largeur minimale fixe : sur petit écran, le tableau défile horizontalement */}
+      <div className="grid auto-cols-[minmax(15rem,1fr)] grid-flow-col gap-4 overflow-x-auto pb-4">
         {APPLICATION_STATUSES.map((status) => (
           <KanbanColumn key={status} status={status} applications={columns[status]} onEdit={onEdit} />
         ))}
@@ -55,7 +56,7 @@ function KanbanColumn({ status, applications, onEdit }: KanbanColumnProps) {
     <section
       ref={setNodeRef}
       aria-label={STATUS_LABELS[status]}
-      className={`min-h-64 min-w-56 rounded-2xl p-3 transition-colors ${isOver ? 'bg-indigo-50 ring-2 ring-indigo-200' : 'bg-slate-100'}`}
+      className={`min-h-64 rounded-2xl p-3 transition-colors ${isOver ? 'bg-indigo-50 ring-2 ring-indigo-200' : 'bg-slate-100'}`}
     >
       <header className="mb-3 flex items-center gap-2 px-1">
         <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[status]}`} />

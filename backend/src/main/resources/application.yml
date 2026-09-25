@@ -9,9 +9,6 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate # le schéma est géré uniquement par Flyway
-  mvc:
-    problemdetails:
-      enabled: true
 
 app:
   jwt:
