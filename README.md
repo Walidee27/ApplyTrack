@@ -4,7 +4,11 @@
 
 Application web pour **suivre ses candidatures de stage et d'alternance** : un tableau kanban où chaque candidature avance de colonne en colonne, de l'envoi jusqu'à l'offre.
 
-> 🚧 Projet en cours de développement. Voir la [feuille de route](#-feuille-de-route).
+### 👉 [Essayer la démo en ligne](https://applytrack-chi.vercel.app)
+
+Clique sur **« Essayer avec le compte démo »** : aucune inscription n'est nécessaire. Les données sont fictives et réinitialisées chaque nuit.
+
+> ⏳ L'API est hébergée sur une offre gratuite qui se met en veille : la première connexion peut prendre jusqu'à 2 minutes, le temps que le serveur redémarre.
 
 ## ✨ Fonctionnalités
 
@@ -98,7 +102,7 @@ La CI GitHub Actions lance à chaque push le linter, la vérification des types,
 | Front | [Vercel](https://vercel.com) | Dossier racine `frontend`, [`vercel.json`](frontend/vercel.json) pour les routes de la SPA |
 
 - **Compte de démo** : avec `DEMO_ENABLED=true`, l'API crée `demo@example.com` / `demo12345` avec 11 candidatures réalistes, datées par rapport au jour courant. Le compte est **réinitialisé chaque nuit**. Côté front, `VITE_DEMO_ENABLED=true` affiche le bouton « Essayer avec le compte démo ».
-- **Mise en veille** : l'offre gratuite de Render endort l'API après 15 minutes d'inactivité. Le front réveille l'API dès l'ouverture du site et affiche un bandeau si une requête dépasse 3 secondes.
+- **Mise en veille** : l'offre gratuite de Render endort l'API après 15 minutes d'inactivité, et le redémarrage prend environ 2 minutes (processeur très limité). Le front réveille l'API dès l'ouverture du site et affiche un bandeau si une requête dépasse 3 secondes.
 - **JVM** : l'image limite la mémoire à 75 % de celle du conteneur (`MaxRAMPercentage`). Elle utilise environ 280 Mo sur les 512 Mo de l'offre gratuite.
 
 ## 📡 API
@@ -123,4 +127,4 @@ La CI GitHub Actions lance à chaque push le linter, la vérification des types,
 - [x] **Tableau de bord** : taux de réponse, taux d'entretien, délai moyen, candidatures par semaine
 - [ ] Recherche et filtres (entreprise, lieu, période)
 - [ ] Tests de bout en bout Playwright
-- [ ] Déploiement : API sur Render ou Fly.io, front sur Vercel, et lien de démo dans ce README
+- [x] Déploiement : base Neon, API sur Render, front sur Vercel, compte de démo public
