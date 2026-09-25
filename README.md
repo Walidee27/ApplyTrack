@@ -1,5 +1,7 @@
 # ApplyTrack
 
+[![CI](https://github.com/Walidee27/ApplyTrack/actions/workflows/ci.yml/badge.svg)](https://github.com/Walidee27/ApplyTrack/actions/workflows/ci.yml)
+
 Application web pour **suivre ses candidatures de stage et d'alternance** : un tableau kanban où chaque candidature avance de colonne en colonne, de l'envoi jusqu'à l'offre.
 
 > 🚧 Projet en cours de développement. Voir la [feuille de route](#-feuille-de-route).
