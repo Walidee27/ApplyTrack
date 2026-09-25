@@ -11,9 +11,9 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 RUN addgroup -S app && adduser -S app -G app
 
-# Mémoire adaptée au conteneur (512 Mo sur l'offre gratuite de Render) et compilation JIT
-# limitée au niveau 1 : démarrage bien plus rapide quand le processeur est très limité
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+# Tas limité à 60 % des 512 Mo de Render : le reste couvre l'archive CDS, le métaspace et les threads.
+# Compilation JIT limitée au niveau 1 : démarrage bien plus rapide quand le processeur est très limité.
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60 -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
 
 # Le jar « extrait » (jar principal + dossier lib/) est le format attendu par CDS
 COPY --from=build /app/target/*.jar app.jar
