@@ -8,7 +8,7 @@ Application web pour **suivre ses candidatures de stage et d'alternance** : un t
 
 Clique sur **« Essayer avec le compte démo »** : aucune inscription n'est nécessaire. Les données sont fictives et réinitialisées chaque nuit.
 
-> ⏳ L'API est hébergée sur une offre gratuite qui se met en veille : la première connexion peut prendre jusqu'à 2 minutes, le temps que le serveur redémarre.
+> ⏳ L'API est hébergée sur une offre gratuite : si elle a été mise en veille, la première connexion peut prendre une minute environ, le temps que le serveur redémarre.
 
 ## ✨ Fonctionnalités
 
@@ -102,8 +102,8 @@ La CI GitHub Actions lance à chaque push le linter, la vérification des types,
 | Front | [Vercel](https://vercel.com) | Dossier racine `frontend`, [`vercel.json`](frontend/vercel.json) pour les routes de la SPA |
 
 - **Compte de démo** : avec `DEMO_ENABLED=true`, l'API crée `demo@example.com` / `demo12345` avec 11 candidatures réalistes, datées par rapport au jour courant. Le compte est **réinitialisé chaque nuit**. Côté front, `VITE_DEMO_ENABLED=true` affiche le bouton « Essayer avec le compte démo ».
-- **Mise en veille** : l'offre gratuite de Render endort l'API après 15 minutes d'inactivité, et le redémarrage prend environ 2 minutes (processeur très limité). Le front réveille l'API dès l'ouverture du site et affiche un bandeau si une requête dépasse 3 secondes.
-- **JVM** : l'image limite la mémoire à 75 % de celle du conteneur (`MaxRAMPercentage`). Elle utilise environ 280 Mo sur les 512 Mo de l'offre gratuite.
+- **Mise en veille** : l'offre gratuite de Render endort l'API après 15 minutes d'inactivité, et ne dispose que de 0,1 processeur. Pour limiter l'attente, l'image Docker embarque une **archive CDS** (Class Data Sharing) générée au build et limite la compilation JIT au niveau 1 : **démarrage passé de 107 s à 30 s** à ressources égales, et mémoire de 280 à 180 Mo. Le front réveille l'API dès l'ouverture du site et affiche un bandeau si une requête dépasse 3 secondes.
+- **JVM** : l'image limite la mémoire à 75 % de celle du conteneur (`MaxRAMPercentage`).
 
 ## 📡 API
 

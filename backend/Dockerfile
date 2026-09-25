@@ -10,9 +10,30 @@ RUN mvn -B -q package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 RUN addgroup -S app && adduser -S app -G app
-USER app
+
+# Mémoire adaptée au conteneur (512 Mo sur l'offre gratuite de Render) et compilation JIT
+# limitée au niveau 1 : démarrage bien plus rapide quand le processeur est très limité
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+
+# Le jar « extrait » (jar principal + dossier lib/) est le format attendu par CDS
 COPY --from=build /app/target/*.jar app.jar
-# Adapte la mémoire de la JVM à celle du conteneur (512 Mo sur l'offre gratuite de Render)
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC"
+RUN java -Djarmode=tools -jar app.jar extract --destination extracted && rm app.jar
+
+# Archive CDS (Class Data Sharing) : on démarre l'application une fois pendant le build pour
+# enregistrer les classes chargées, puis la JVM les relit directement à chaque démarrage.
+# spring.context.exit=onRefresh arrête l'application juste après l'initialisation du contexte ;
+# les options suivantes évitent tout accès à la base, indisponible pendant le build.
+RUN java -XX:ArchiveClassesAtExit=extracted/app.jsa \
+        -Dspring.context.exit=onRefresh \
+        -Dspring.flyway.enabled=false \
+        -Dspring.jpa.hibernate.ddl-auto=none \
+        -Dspring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false \
+        -Dspring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect \
+        -Dapp.reminders.enabled=false \
+        -Dapp.demo.enabled=false \
+        -jar extracted/app.jar \
+    && chown -R app:app extracted
+
+USER app
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:SharedArchiveFile=extracted/app.jsa", "-jar", "extracted/app.jar"]
