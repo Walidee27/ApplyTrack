@@ -19,7 +19,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * Base des tests d'intégration : vraie base PostgreSQL lancée dans Docker par Testcontainers,
  * migrations Flyway comprises. Le conteneur est partagé par toutes les classes de test.
  */
-@SpringBootTest
+@SpringBootTest(properties = "app.reminders.enabled=false") // les tests déclenchent les relances eux-mêmes
 @AutoConfigureMockMvc
 public abstract class IntegrationTest {
 

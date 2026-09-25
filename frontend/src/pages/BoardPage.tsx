@@ -7,13 +7,14 @@ import { useAuth } from '../auth/useAuth'
 import { ApplicationForm } from '../components/ApplicationForm'
 import { KanbanBoard } from '../components/KanbanBoard'
 import { Modal } from '../components/Modal'
+import { needsFollowUp } from '../lib/status'
 
 const QUERY_KEY = ['applications']
 
 type Editing = { mode: 'create' } | { mode: 'edit'; application: JobApplication } | null
 
 export function BoardPage() {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<Editing>(null)
 
@@ -22,7 +23,11 @@ export function BoardPage() {
     queryFn: applicationsApi.list,
   })
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+  const invalidate = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: ['stats'] }),
+    ])
 
   // Mise à jour optimiste : la carte change de colonne immédiatement, on annule si le back refuse
   const moveMutation = useMutation({
@@ -67,14 +72,17 @@ export function BoardPage() {
   }
 
   const saveError = saveMutation.error instanceof ApiError ? saveMutation.error : null
+  const followUpAfterDays = user?.reminderAfterDays ?? 7
+  const toFollowUpCount = applications.filter((a) => needsFollowUp(a, followUpAfterDays)).length
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div>
       <header className="mb-6 flex flex-wrap items-center gap-3">
         <div>
           <h1 className="text-2xl font-bold">Mes candidatures</h1>
           <p className="text-sm text-slate-500">
-            Bonjour {user?.displayName} · {applications.length} candidature{applications.length > 1 ? 's' : ''}
+            {applications.length} candidature{applications.length > 1 ? 's' : ''}
+            {toFollowUpCount > 0 && ` · ${toFollowUpCount} à relancer`}
           </p>
         </div>
         <button
@@ -84,9 +92,6 @@ export function BoardPage() {
         >
           + Nouvelle candidature
         </button>
-        <button type="button" onClick={signOut} className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">
-          Déconnexion
-        </button>
       </header>
 
       {isLoading && <p className="text-slate-500">Chargement…</p>}
@@ -94,6 +99,7 @@ export function BoardPage() {
       {!isLoading && !isError && (
         <KanbanBoard
           applications={applications}
+          followUpAfterDays={followUpAfterDays}
           onMove={(id, status) => moveMutation.mutate({ id, status })}
           onEdit={(application) => setEditing({ mode: 'edit', application })}
         />

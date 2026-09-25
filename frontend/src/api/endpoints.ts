@@ -1,5 +1,13 @@
 import { apiFetch } from './client'
-import type { ApplicationStatus, AuthResponse, JobApplication, JobApplicationInput, User } from './types'
+import type {
+  ApplicationStatus,
+  AuthResponse,
+  JobApplication,
+  JobApplicationInput,
+  ReminderPreferences,
+  Stats,
+  User,
+} from './types'
 
 export const authApi = {
   register: (body: { email: string; password: string; displayName: string }) =>
@@ -7,6 +15,12 @@ export const authApi = {
   login: (body: { email: string; password: string }) =>
     apiFetch<AuthResponse>('/api/auth/login', { method: 'POST', body: JSON.stringify(body) }),
   me: () => apiFetch<User>('/api/auth/me'),
+  updatePreferences: (body: ReminderPreferences) =>
+    apiFetch<User>('/api/users/me/preferences', { method: 'PUT', body: JSON.stringify(body) }),
+}
+
+export const statsApi = {
+  get: () => apiFetch<Stats>('/api/stats'),
 }
 
 export const applicationsApi = {

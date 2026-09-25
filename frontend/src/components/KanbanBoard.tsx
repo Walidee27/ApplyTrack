@@ -13,11 +13,13 @@ import { ApplicationCard } from './ApplicationCard'
 
 interface KanbanBoardProps {
   applications: JobApplication[]
+  /** Délai (en jours) au-delà duquel une candidature sans réponse est signalée « À relancer » */
+  followUpAfterDays: number
   onMove: (id: number, status: ApplicationStatus) => void
   onEdit: (application: JobApplication) => void
 }
 
-export function KanbanBoard({ applications, onMove, onEdit }: KanbanBoardProps) {
+export function KanbanBoard({ applications, followUpAfterDays, onMove, onEdit }: KanbanBoardProps) {
   // Distance minimale pour qu'un simple clic ne déclenche pas de glisser-déposer
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -36,7 +38,13 @@ export function KanbanBoard({ applications, onMove, onEdit }: KanbanBoardProps) 
       {/* Colonnes de largeur minimale fixe : sur petit écran, le tableau défile horizontalement */}
       <div className="grid auto-cols-[minmax(15rem,1fr)] grid-flow-col gap-4 overflow-x-auto pb-4">
         {APPLICATION_STATUSES.map((status) => (
-          <KanbanColumn key={status} status={status} applications={columns[status]} onEdit={onEdit} />
+          <KanbanColumn
+            key={status}
+            status={status}
+            applications={columns[status]}
+            followUpAfterDays={followUpAfterDays}
+            onEdit={onEdit}
+          />
         ))}
       </div>
     </DndContext>
@@ -46,10 +54,12 @@ export function KanbanBoard({ applications, onMove, onEdit }: KanbanBoardProps) 
 interface KanbanColumnProps {
   status: ApplicationStatus
   applications: JobApplication[]
+  /** Délai (en jours) au-delà duquel une candidature sans réponse est signalée « À relancer » */
+  followUpAfterDays: number
   onEdit: (application: JobApplication) => void
 }
 
-function KanbanColumn({ status, applications, onEdit }: KanbanColumnProps) {
+function KanbanColumn({ status, applications, followUpAfterDays, onEdit }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
 
   return (
@@ -67,7 +77,12 @@ function KanbanColumn({ status, applications, onEdit }: KanbanColumnProps) {
       </header>
       <div className="space-y-2">
         {applications.map((application) => (
-          <ApplicationCard key={application.id} application={application} onEdit={onEdit} />
+          <ApplicationCard
+            key={application.id}
+            application={application}
+            followUpAfterDays={followUpAfterDays}
+            onEdit={onEdit}
+          />
         ))}
       </div>
     </section>

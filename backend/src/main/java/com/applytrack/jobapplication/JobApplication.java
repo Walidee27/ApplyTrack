@@ -61,6 +61,10 @@ public class JobApplication {
     @Column(name = "status_changed_at", nullable = false)
     private Instant statusChangedAt;
 
+    /** Date de la dernière relance envoyée pour cette candidature. */
+    @Column(name = "last_reminder_at")
+    private Instant lastReminderAt;
+
     protected JobApplication() {
         // requis par JPA
     }
@@ -95,11 +99,18 @@ public class JobApplication {
         this.notes = notes;
     }
 
-    public void changeStatus(ApplicationStatus newStatus) {
-        if (status != newStatus) {
-            status = newStatus;
-            statusChangedAt = Instant.now();
+    /** Change le statut et renvoie {@code true} si le statut a réellement changé. */
+    public boolean changeStatus(ApplicationStatus newStatus) {
+        if (status == newStatus) {
+            return false;
         }
+        status = newStatus;
+        statusChangedAt = Instant.now();
+        return true;
+    }
+
+    public void markReminded(Instant remindedAt) {
+        lastReminderAt = remindedAt;
     }
 
     public Long getId() {
@@ -148,5 +159,9 @@ public class JobApplication {
 
     public Instant getStatusChangedAt() {
         return statusChangedAt;
+    }
+
+    public Instant getLastReminderAt() {
+        return lastReminderAt;
     }
 }

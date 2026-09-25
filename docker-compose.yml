@@ -1,5 +1,5 @@
-# Environnement local : `docker compose up -d db` pour la base seule,
-# ou `docker compose up --build` pour la base + l'API.
+# Environnement local : `docker compose up -d db mailpit` pour la base et le serveur mail seuls,
+# ou `docker compose up --build` pour tout lancer, API comprise.
 services:
   db:
     image: postgres:17-alpine
@@ -16,6 +16,13 @@ services:
       interval: 5s
       retries: 10
 
+  # Faux serveur SMTP : capture les e-mails envoyés et les affiche sur http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
   api:
     build: ./backend
     environment:
@@ -23,11 +30,15 @@ services:
       DATABASE_USER: applytrack
       DATABASE_PASSWORD: applytrack
       CORS_ALLOWED_ORIGINS: http://localhost:5173
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
     ports:
       - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
 
 volumes:
   db-data:

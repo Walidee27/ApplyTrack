@@ -9,6 +9,16 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate # le schéma est géré uniquement par Flyway
+  # En local, Mailpit (docker compose) capture les e-mails : http://localhost:8025
+  # En production, n'importe quel SMTP (Brevo, Resend, Mailjet…)
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
 
 app:
   jwt:
@@ -17,6 +27,11 @@ app:
     expiration: ${JWT_EXPIRATION:PT24H}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  reminders:
+    enabled: ${REMINDERS_ENABLED:true}
+    cron: ${REMINDERS_CRON:0 0 8 * * *} # tous les jours à 8 h (Europe/Paris)
+    mail-from: ${MAIL_FROM:ApplyTrack <no-reply@applytrack.dev>}
+    frontend-url: ${FRONTEND_URL:http://localhost:5173}
 
 springdoc:
   swagger-ui:
@@ -27,3 +42,6 @@ management:
     web:
       exposure:
         include: health
+  health:
+    mail:
+      enabled: false # un SMTP indisponible ne doit pas rendre l'API « DOWN »

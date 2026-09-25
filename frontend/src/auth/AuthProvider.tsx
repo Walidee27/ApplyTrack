@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { tokenStorage } from '../api/client'
 import { authApi } from '../api/endpoints'
-import type { AuthResponse } from '../api/types'
+import type { AuthResponse, User } from '../api/types'
 import { AuthContext, type AuthContextValue } from './authContext'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -32,9 +32,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null)
   }, [queryClient])
 
+  const updateUser = useCallback(
+    (updated: User) => queryClient.setQueryData(['me', token], updated),
+    [queryClient, token],
+  )
+
   const value = useMemo<AuthContextValue>(
-    () => ({ user: token ? (user ?? null) : null, isLoading: token !== null && isLoading, signIn, signOut }),
-    [token, user, isLoading, signIn, signOut],
+    () => ({
+      user: token ? (user ?? null) : null,
+      isLoading: token !== null && isLoading,
+      signIn,
+      signOut,
+      updateUser,
+    }),
+    [token, user, isLoading, signIn, signOut, updateUser],
   )
 
   return <AuthContext value={value}>{children}</AuthContext>

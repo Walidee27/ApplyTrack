@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 import { Navigate, createBrowserRouter, RouterProvider } from 'react-router'
 import { useAuth } from './auth/useAuth'
+import { Layout } from './components/Layout'
 import { AuthPage } from './pages/AuthPage'
 import { BoardPage } from './pages/BoardPage'
+import { StatsPage } from './pages/StatsPage'
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth()
@@ -17,7 +19,13 @@ function GuestOnly({ children }: { children: ReactNode }) {
 }
 
 const router = createBrowserRouter([
-  { path: '/', element: <RequireAuth><BoardPage /></RequireAuth> },
+  {
+    element: <RequireAuth><Layout /></RequireAuth>,
+    children: [
+      { path: '/', element: <BoardPage /> },
+      { path: '/stats', element: <StatsPage /> },
+    ],
+  },
   { path: '/login', element: <GuestOnly><AuthPage mode="login" /></GuestOnly> },
   { path: '/register', element: <GuestOnly><AuthPage mode="register" /></GuestOnly> },
   { path: '*', element: <Navigate to="/" replace /> },

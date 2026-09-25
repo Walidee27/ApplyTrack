@@ -13,10 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class JobApplicationService {
 
     private final JobApplicationRepository applications;
+    private final StatusChangeRepository statusChanges;
     private final UserRepository users;
 
-    public JobApplicationService(JobApplicationRepository applications, UserRepository users) {
+    public JobApplicationService(
+            JobApplicationRepository applications, StatusChangeRepository statusChanges, UserRepository users) {
         this.applications = applications;
+        this.statusChanges = statusChanges;
         this.users = users;
     }
 
@@ -40,24 +43,33 @@ public class JobApplicationService {
                 request.status(),
                 request.appliedOn());
         applyDetails(application, request);
-        return JobApplicationResponse.from(applications.save(application));
+        JobApplication saved = applications.save(application);
+        statusChanges.save(new StatusChange(saved, null, saved.getStatus(), saved.getStatusChangedAt()));
+        return JobApplicationResponse.from(saved);
     }
 
     public JobApplicationResponse update(Long userId, Long id, JobApplicationRequest request) {
         JobApplication application = find(userId, id);
         applyDetails(application, request);
-        application.changeStatus(request.status());
+        changeStatus(application, request.status());
         return JobApplicationResponse.from(applications.saveAndFlush(application));
     }
 
     public JobApplicationResponse updateStatus(Long userId, Long id, ApplicationStatus status) {
         JobApplication application = find(userId, id);
-        application.changeStatus(status);
+        changeStatus(application, status);
         return JobApplicationResponse.from(applications.saveAndFlush(application));
     }
 
     public void delete(Long userId, Long id) {
         applications.delete(find(userId, id));
+    }
+
+    private void changeStatus(JobApplication application, ApplicationStatus newStatus) {
+        ApplicationStatus previous = application.getStatus();
+        if (application.changeStatus(newStatus)) {
+            statusChanges.save(new StatusChange(application, previous, newStatus, application.getStatusChangedAt()));
+        }
     }
 
     private JobApplication find(Long userId, Long id) {

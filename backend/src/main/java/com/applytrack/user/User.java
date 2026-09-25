@@ -29,6 +29,12 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "reminders_enabled", nullable = false)
+    private boolean remindersEnabled = true;
+
+    @Column(name = "reminder_after_days", nullable = false)
+    private int reminderAfterDays = 7;
+
     protected User() {
         // requis par JPA
     }
@@ -62,5 +68,18 @@ public class User {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isRemindersEnabled() {
+        return remindersEnabled;
+    }
+
+    public int getReminderAfterDays() {
+        return reminderAfterDays;
+    }
+
+    public void updateReminderPreferences(boolean enabled, int afterDays) {
+        this.remindersEnabled = enabled;
+        this.reminderAfterDays = afterDays;
     }
 }

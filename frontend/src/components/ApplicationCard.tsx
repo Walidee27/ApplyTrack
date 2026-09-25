@@ -1,25 +1,27 @@
 import { useDraggable } from '@dnd-kit/core'
 import type { JobApplication } from '../api/types'
-import { daysSince } from '../lib/status'
+import { daysSince, needsFollowUp } from '../lib/status'
 
 interface ApplicationCardProps {
   application: JobApplication
+  followUpAfterDays: number
   onEdit: (application: JobApplication) => void
 }
 
-export function ApplicationCard({ application, onEdit }: ApplicationCardProps) {
+export function ApplicationCard({ application, followUpAfterDays, onEdit }: ApplicationCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: application.id,
   })
   const days = daysSince(application.statusChangedAt)
+  const toFollowUp = needsFollowUp(application, followUpAfterDays)
 
   return (
     <article
       ref={setNodeRef}
       style={transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : undefined}
-      className={`cursor-grab rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200 active:cursor-grabbing ${
-        isDragging ? 'z-10 opacity-80 shadow-lg' : ''
-      }`}
+      className={`cursor-grab rounded-xl bg-white p-3 shadow-sm ring-1 active:cursor-grabbing ${
+        toFollowUp ? 'ring-amber-300' : 'ring-slate-200'
+      } ${isDragging ? 'z-10 opacity-80 shadow-lg' : ''}`}
       {...listeners}
       {...attributes}
     >
@@ -38,10 +40,17 @@ export function ApplicationCard({ application, onEdit }: ApplicationCardProps) {
           Modifier
         </button>
       </div>
-      <p className="mt-2 text-xs text-slate-400">
-        {application.location ? `${application.location} · ` : ''}
-        {days === 0 ? "Mis à jour aujourd'hui" : `Sans changement depuis ${days} j`}
-      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+        {toFollowUp && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-800 ring-1 ring-amber-200">
+            <span aria-hidden="true">⏰</span> À relancer
+          </span>
+        )}
+        <span>
+          {application.location ? `${application.location} · ` : ''}
+          {days === 0 ? "Mis à jour aujourd'hui" : `Sans changement depuis ${days} j`}
+        </span>
+      </div>
     </article>
   )
 }

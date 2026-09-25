@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { JobApplication } from '../api/types'
-import { daysSince, groupByStatus, isApplicationStatus } from './status'
+import { daysSince, groupByStatus, isApplicationStatus, needsFollowUp } from './status'
 
 const application = (overrides: Partial<JobApplication>): JobApplication => ({
   id: 1,
@@ -42,6 +42,22 @@ describe('daysSince', () => {
 
   it('ne renvoie jamais de valeur négative', () => {
     expect(daysSince('2026-09-10T00:00:00Z', new Date('2026-09-08T00:00:00Z'))).toBe(0)
+  })
+})
+
+describe('needsFollowUp', () => {
+  const now = new Date('2026-09-20T12:00:00Z')
+
+  it('signale une candidature en attente depuis au moins le délai choisi', () => {
+    expect(needsFollowUp(application({ statusChangedAt: '2026-09-13T10:00:00Z' }), 7, now)).toBe(true)
+    expect(needsFollowUp(application({ statusChangedAt: '2026-09-15T10:00:00Z' }), 7, now)).toBe(false)
+  })
+
+  it("ne signale pas une candidature qui a déjà reçu une réponse", () => {
+    const old = { statusChangedAt: '2026-08-01T10:00:00Z' }
+    expect(needsFollowUp(application({ ...old, status: 'FOLLOW_UP' }), 7, now)).toBe(true)
+    expect(needsFollowUp(application({ ...old, status: 'INTERVIEW' }), 7, now)).toBe(false)
+    expect(needsFollowUp(application({ ...old, status: 'REJECTED' }), 7, now)).toBe(false)
   })
 })
 

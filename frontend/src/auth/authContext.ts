@@ -6,6 +6,8 @@ export interface AuthContextValue {
   isLoading: boolean
   signIn: (response: AuthResponse) => void
   signOut: () => void
+  /** Remplace l'utilisateur en cache après une modification (préférences…) */
+  updateUser: (user: User) => void
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
