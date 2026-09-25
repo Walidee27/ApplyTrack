@@ -86,7 +86,13 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   const token = tokenStorage.get()
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
-  const response = await trackSlowRequest(fetch(`${API_URL}${path}`, { ...init, headers }))
+  let response: Response
+  try {
+    response = await trackSlowRequest(fetch(`${API_URL}${path}`, { ...init, headers }))
+  } catch {
+    // Erreur réseau ou CORS : fetch ne donne aucun détail, on affiche un message compréhensible
+    throw new ApiError(0, 'Impossible de joindre le serveur. Réessaie dans quelques instants.')
+  }
 
   if (!response.ok) {
     // Le back renvoie des erreurs au format RFC 9457 (ProblemDetail)

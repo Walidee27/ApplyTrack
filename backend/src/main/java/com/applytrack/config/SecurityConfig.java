@@ -3,7 +3,10 @@ package com.applytrack.config;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import java.util.List;
 import javax.crypto.SecretKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +32,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 @Configuration
 public class SecurityConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     private static final String[] PUBLIC_ENDPOINTS = {
         "/api/auth/register",
@@ -78,8 +83,17 @@ public class SecurityConfig {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource(AppProperties properties) {
+        // Le navigateur compare l'origine caractère par caractère : on tolère les espaces
+        // et le « / » final souvent collés par erreur dans la variable d'environnement
+        List<String> origins = properties.cors().allowedOrigins().stream()
+                .map(String::trim)
+                .map(origin -> origin.replaceAll("/+$", ""))
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+        log.info("Origines CORS autorisées : {}", origins);
+
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(properties.cors().allowedOrigins());
+        configuration.setAllowedOrigins(origins);
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
 
