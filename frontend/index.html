@@ -3,7 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ApplyTrack</title>
+    <title>ApplyTrack · Suivi de candidatures de stage et d'alternance</title>
+    <meta
+      name="description"
+      content="Suis tes candidatures de stage et d'alternance dans un kanban, reçois des rappels de relance et mesure tes taux de réponse."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content="ApplyTrack" />
+    <meta property="og:description" content="Suis tes candidatures. Relance au bon moment." />
+    <meta name="theme-color" content="#4f46e5" />
+    <script>
+      // Applique le thème avant l'affichage pour éviter un flash blanc en mode sombre
+      try {
+        var t = localStorage.getItem('applytrack.theme')
+        if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches))
+          document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

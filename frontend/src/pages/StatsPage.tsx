@@ -12,16 +12,16 @@ export function StatsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">Statistiques</h1>
+      <h1 className="mb-6 text-2xl font-bold tracking-tight">Statistiques</h1>
 
-      {isLoading && <p className="text-slate-500">Chargement…</p>}
-      {isError && <p role="alert" className="text-rose-700">Impossible de charger les statistiques.</p>}
+      {isLoading && <p className="text-ink-muted">Chargement…</p>}
+      {isError && <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-danger">Impossible de charger les statistiques.</p>}
       {stats && stats.total === 0 && (
-        <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
+        <div className="rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-line">
           <p className="font-medium">Pas encore de statistiques</p>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-ink-muted">
             Ajoute tes premières candidatures depuis le{' '}
-            <Link to="/" className="font-medium text-indigo-700 hover:underline">
+            <Link to="/app" className="font-medium text-brand hover:underline">
               tableau
             </Link>
             .
@@ -37,7 +37,7 @@ function StatsContent({ stats }: { stats: Stats }) {
   const average = stats.averageResponseDays
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatTile label="Candidatures" value={String(stats.total)} />
         <StatTile label="Taux de réponse" value={percent(stats.responseRate)} hint="Entretien, offre ou refus" />
         <StatTile label="Taux d'entretien" value={percent(stats.interviewRate)} hint="Entretien ou offre" />
@@ -49,10 +49,10 @@ function StatsContent({ stats }: { stats: Stats }) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 lg:col-span-2">
+        <section className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line lg:col-span-2">
           <WeeklyChart weeks={stats.weekly} />
         </section>
-        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <section className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
           <StatusBreakdown stats={stats} />
         </section>
       </div>
@@ -62,10 +62,10 @@ function StatsContent({ stats }: { stats: Stats }) {
 
 function StatTile({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>
-      {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
+    <div className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
+      <p className="text-sm text-ink-muted">{label}</p>
+      <p className="mt-1 text-2xl font-bold tabular-nums sm:text-3xl">{value}</p>
+      {hint && <p className="mt-1 text-xs text-ink-faint">{hint}</p>}
     </div>
   )
 }
@@ -82,15 +82,15 @@ function StatusBreakdown({ stats }: { stats: Stats }) {
           return (
             <li key={status} title={`${STATUS_LABELS[status]} : ${count} (${percent(count / stats.total)})`}>
               <div className="mb-1 flex justify-between text-sm">
-                <span className="flex items-center gap-2 text-slate-700">
+                <span className="flex items-center gap-2">
                   <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[status]}`} aria-hidden="true" />
                   {STATUS_LABELS[status]}
                 </span>
-                <span className="text-slate-500 tabular-nums">
+                <span className="text-ink-muted tabular-nums">
                   {count} · {percent(count / stats.total)}
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-slate-100">
+              <div className="h-2 rounded-full bg-surface-muted">
                 <div
                   className={`h-2 rounded-full ${STATUS_COLORS[status]}`}
                   style={{ width: `${(count / max) * 100}%` }}

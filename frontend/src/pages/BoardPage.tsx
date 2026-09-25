@@ -7,7 +7,9 @@ import { useAuth } from '../auth/useAuth'
 import { ApplicationForm } from '../components/ApplicationForm'
 import { KanbanBoard } from '../components/KanbanBoard'
 import { Modal } from '../components/Modal'
-import { needsFollowUp } from '../lib/status'
+import { Button, Card, Spinner } from '../components/ui'
+import { STATUS_LABELS, needsFollowUp } from '../lib/status'
+import { toast } from '../lib/toast'
 
 const QUERY_KEY = ['applications']
 
@@ -41,8 +43,10 @@ export function BoardPage() {
       )
       return { previous }
     },
+    onSuccess: (updated) => toast(`${updated.company} → ${STATUS_LABELS[updated.status]}`),
     onError: (_error, _variables, context) => {
       if (context?.previous) queryClient.setQueryData(QUERY_KEY, context.previous)
+      toast("Le changement de statut n'a pas pu être enregistré", 'error')
     },
     onSettled: invalidate,
   })
@@ -52,7 +56,8 @@ export function BoardPage() {
       editing?.mode === 'edit'
         ? applicationsApi.update(editing.application.id, input)
         : applicationsApi.create(input),
-    onSuccess: () => {
+    onSuccess: (saved) => {
+      toast(editing?.mode === 'edit' ? 'Candidature mise à jour' : `Candidature ${saved.company} ajoutée`)
       setEditing(null)
       invalidate()
     },
@@ -60,7 +65,9 @@ export function BoardPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => applicationsApi.remove(id),
+    onError: () => toast('La suppression a échoué', 'error'),
     onSuccess: () => {
+      toast('Candidature supprimée')
       setEditing(null)
       invalidate()
     },
@@ -79,24 +86,40 @@ export function BoardPage() {
     <div>
       <header className="mb-6 flex flex-wrap items-center gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Mes candidatures</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-2xl font-bold tracking-tight">Mes candidatures</h1>
+          <p className="mt-1 text-sm text-ink-muted">
             {applications.length} candidature{applications.length > 1 ? 's' : ''}
             {toFollowUpCount > 0 && ` · ${toFollowUpCount} à relancer`}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setEditing({ mode: 'create' })}
-          className="ml-auto rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-        >
+        <Button onClick={() => setEditing({ mode: 'create' })} className="ml-auto">
           + Nouvelle candidature
-        </button>
+        </Button>
       </header>
 
-      {isLoading && <p className="text-slate-500">Chargement…</p>}
-      {isError && <p role="alert" className="text-rose-600">Impossible de charger les candidatures.</p>}
-      {!isLoading && !isError && (
+      {isLoading && (
+        <p className="flex items-center gap-2 text-ink-muted">
+          <Spinner /> Chargement…
+        </p>
+      )}
+      {isError && (
+        <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-danger">
+          Impossible de charger les candidatures.
+        </p>
+      )}
+      {!isLoading && !isError && applications.length === 0 && (
+        <Card className="mx-auto max-w-lg px-6 py-12 text-center">
+          <span className="text-4xl" aria-hidden="true">📋</span>
+          <h2 className="mt-4 text-lg font-semibold">Ton tableau est vide</h2>
+          <p className="mt-2 text-sm text-ink-muted">
+            Ajoute ta première candidature : elle apparaîtra dans la colonne « Envoyée », prête à être suivie.
+          </p>
+          <Button onClick={() => setEditing({ mode: 'create' })} className="mt-6">
+            + Ajouter une candidature
+          </Button>
+        </Card>
+      )}
+      {!isLoading && !isError && applications.length > 0 && (
         <KanbanBoard
           applications={applications}
           followUpAfterDays={followUpAfterDays}
@@ -116,7 +139,7 @@ export function BoardPage() {
             onCancel={closeModal}
           />
           {saveError && Object.keys(saveError.fieldErrors).length === 0 && (
-            <p role="alert" className="mt-3 text-sm text-rose-600">{saveError.message}</p>
+            <p role="alert" className="mt-3 rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{saveError.message}</p>
           )}
         </Modal>
       )}

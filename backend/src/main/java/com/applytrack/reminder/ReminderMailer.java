@@ -47,7 +47,7 @@ public class ReminderMailer {
                     .append(" (sans nouvelles depuis ").append(days).append(" jours)\n");
         }
         return text
-                .append("\nOuvre ton tableau : ").append(properties.reminders().frontendUrl()).append("\n\n")
+                .append("\nOuvre ton tableau : ").append(properties.reminders().frontendUrl()).append("/app\n\n")
                 .append("Tu peux changer le délai ou désactiver ces rappels dans tes préférences.\n")
                 .toString();
     }

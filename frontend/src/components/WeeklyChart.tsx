@@ -27,7 +27,7 @@ export function WeeklyChart({ weeks }: { weeks: WeeklyCount[] }) {
         <button
           type="button"
           onClick={() => setShowTable((v) => !v)}
-          className="text-xs font-medium text-indigo-700 hover:underline"
+          className="text-xs font-medium text-brand hover:underline"
         >
           {showTable ? 'Voir le graphique' : 'Voir en tableau'}
         </button>
@@ -36,14 +36,14 @@ export function WeeklyChart({ weeks }: { weeks: WeeklyCount[] }) {
       {showTable ? (
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-slate-500">
+            <tr className="text-left text-ink-muted">
               <th className="py-1 font-medium">Semaine du</th>
               <th className="py-1 text-right font-medium">Candidatures</th>
             </tr>
           </thead>
           <tbody>
             {weeks.map((week) => (
-              <tr key={week.weekStart} className="border-t border-slate-100">
+              <tr key={week.weekStart} className="border-t border-line">
                 <td className="py-1">{weekLabel(week.weekStart)}</td>
                 <td className="py-1 text-right tabular-nums">{week.count}</td>
               </tr>
@@ -54,7 +54,7 @@ export function WeeklyChart({ weeks }: { weeks: WeeklyCount[] }) {
         // mt-6 : place pour la valeur inscrite au-dessus de la barre la plus haute
         <div className="mt-6 flex gap-2">
           {/* Axe vertical : graduations arrondies */}
-          <div className="relative w-6 shrink-0 text-right text-xs text-slate-400" style={{ height: CHART_HEIGHT }}>
+          <div className="relative w-6 shrink-0 text-right text-xs text-ink-faint" style={{ height: CHART_HEIGHT }}>
             {ticks.map((tick) => (
               <span key={tick} className="absolute right-0 -translate-y-1/2" style={{ bottom: (tick / top) * CHART_HEIGHT }}>
                 {tick}
@@ -68,7 +68,7 @@ export function WeeklyChart({ weeks }: { weeks: WeeklyCount[] }) {
               {ticks.map((tick) => (
                 <div
                   key={tick}
-                  className="absolute inset-x-0 border-t border-slate-100"
+                  className="absolute inset-x-0 border-t border-line"
                   style={{ bottom: (tick / top) * CHART_HEIGHT }}
                 />
               ))}
@@ -90,21 +90,21 @@ export function WeeklyChart({ weeks }: { weeks: WeeklyCount[] }) {
                       aria-label={`Semaine du ${weekLabel(week.weekStart)} : ${week.count} candidature${week.count > 1 ? 's' : ''}`}
                     >
                       {index === peakIndex && (
-                        <span className="absolute text-xs font-medium text-slate-700 tabular-nums" style={{ bottom: height + 4 }}>
+                        <span className="absolute text-xs font-medium text-ink tabular-nums" style={{ bottom: height + 4 }}>
                           {week.count}
                         </span>
                       )}
                       <div
-                        className={`w-full max-w-6 rounded-t ${isHovered ? 'bg-indigo-700' : 'bg-indigo-500'}`}
+                        className={`w-full max-w-6 rounded-t ${isHovered ? 'bg-brand-hover' : 'bg-brand'}`}
                         style={{ height: week.count > 0 ? Math.max(height, 2) : 0 }}
                       />
                       {isHovered && (
                         <div
                           role="tooltip"
-                          className="pointer-events-none absolute z-10 w-max -translate-x-1/2 rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs text-white shadow-lg"
+                          className="pointer-events-none absolute z-10 w-max -translate-x-1/2 rounded-lg bg-ink px-2.5 py-1.5 text-xs text-canvas shadow-lg"
                           style={{ bottom: height + 24, left: '50%' }}
                         >
-                          <span className="block text-slate-300">Semaine du {weekLabel(week.weekStart)}</span>
+                          <span className="block opacity-70">Semaine du {weekLabel(week.weekStart)}</span>
                           <span className="font-semibold tabular-nums">
                             {week.count} candidature{week.count > 1 ? 's' : ''}
                           </span>
@@ -117,9 +117,9 @@ export function WeeklyChart({ weeks }: { weeks: WeeklyCount[] }) {
             </div>
 
             {/* Axe horizontal : une étiquette sur deux pour éviter les chevauchements */}
-            <div className="mt-2 flex border-t border-slate-200 pt-1">
+            <div className="mt-2 flex border-t border-line pt-1">
               {weeks.map((week, index) => (
-                <span key={week.weekStart} className="flex-1 text-center text-[11px] text-slate-400">
+                <span key={week.weekStart} className="flex-1 text-center text-[11px] text-ink-faint">
                   {index % 2 === weeks.length % 2 ? '' : weekLabel(week.weekStart)}
                 </span>
               ))}

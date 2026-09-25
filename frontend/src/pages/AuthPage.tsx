@@ -3,13 +3,12 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ApiError } from '../api/client'
 import { authApi } from '../api/endpoints'
-import { useAuth } from '../auth/useAuth'
 import type { AuthResponse } from '../api/types'
+import { DEMO_ENABLED, useDemoLogin } from '../auth/useDemoLogin'
+import { useAuth } from '../auth/useAuth'
 import { TextField } from '../components/TextField'
-
-/** Compte public recréé chaque nuit par le back (voir DemoDataService), affiché si VITE_DEMO_ENABLED=true. */
-const DEMO_ACCOUNT = { email: 'demo@example.com', password: 'demo12345' }
-const DEMO_ENABLED = import.meta.env.VITE_DEMO_ENABLED === 'true'
+import { Logo, ThemeToggle } from '../components/ui'
+import { buttonClass } from '../lib/button'
 
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const isRegister = mode === 'register'
@@ -17,27 +16,22 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '', displayName: '' })
 
-  const onSuccess = (response: AuthResponse) => {
-    signIn(response)
-    navigate('/', { replace: true })
-  }
-
   const mutation = useMutation({
     mutationFn: () =>
       isRegister
         ? authApi.register(form)
         : authApi.login({ email: form.email, password: form.password }),
-    onSuccess,
+    onSuccess: (response: AuthResponse) => {
+      signIn(response)
+      navigate('/app', { replace: true })
+    },
   })
-
-  const demoMutation = useMutation({
-    mutationFn: () => authApi.login(DEMO_ACCOUNT),
-    onSuccess,
-  })
+  const demoMutation = useDemoLogin()
 
   const failed = mutation.error ?? demoMutation.error
   const error = failed instanceof ApiError ? failed : null
   const isPending = mutation.isPending || demoMutation.isPending
+
   const update = (field: keyof typeof form) => (event: { target: { value: string } }) =>
     setForm((current) => ({ ...current, [field]: event.target.value }))
 
@@ -47,81 +41,112 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg ring-1 ring-slate-200">
-        <h1 className="text-2xl font-bold">ApplyTrack</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {isRegister ? 'Crée ton compte pour suivre tes candidatures.' : 'Content de te revoir !'}
-        </p>
+    <div className="grid min-h-screen lg:grid-cols-2">
+      {/* Panneau de marque, masqué sur mobile */}
+      <aside className="relative hidden overflow-hidden bg-brand p-12 text-on-brand lg:flex lg:flex-col lg:justify-between">
+        <div
+          className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-white/10 blur-3xl"
+          aria-hidden="true"
+        />
+        <Link to="/" className="relative">
+          <span className="text-2xl font-bold tracking-tight">ApplyTrack</span>
+        </Link>
+        <div className="relative max-w-md">
+          <p className="text-3xl leading-tight font-semibold">
+            Toutes tes candidatures au même endroit, et plus aucune relance oubliée.
+          </p>
+          <ul className="mt-8 space-y-3 text-base opacity-90">
+            <li>📋 Un kanban pour suivre chaque étape</li>
+            <li>⏰ Un e-mail quand il est temps de relancer</li>
+            <li>📊 Tes vrais taux de réponse et d'entretien</li>
+          </ul>
+        </div>
+        <p className="relative text-sm opacity-75">Projet open source · React, Spring Boot, PostgreSQL</p>
+      </aside>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
-          {isRegister && (
+      <main className="flex flex-col px-4 py-6 sm:px-8">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="lg:invisible">
+            <Logo />
+          </Link>
+          <ThemeToggle />
+        </div>
+
+        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
+          <h1 className="text-3xl font-bold tracking-tight">{isRegister ? 'Crée ton compte' : 'Content de te revoir'}</h1>
+          <p className="mt-2 text-ink-muted">
+            {isRegister ? 'Gratuit, sans carte bancaire.' : 'Connecte-toi pour retrouver ton tableau.'}
+          </p>
+
+          {DEMO_ENABLED && (
+            <>
+              <button
+                type="button"
+                onClick={() => demoMutation.mutate()}
+                disabled={isPending}
+                className={`mt-8 w-full ${buttonClass('secondary', 'lg')}`}
+              >
+                {demoMutation.isPending ? 'Connexion à la démo…' : '👀 Essayer avec le compte démo'}
+              </button>
+              <div className="my-6 flex items-center gap-3 text-xs text-ink-faint">
+                <span className="h-px flex-1 bg-line" />
+                ou avec ton e-mail
+                <span className="h-px flex-1 bg-line" />
+              </div>
+            </>
+          )}
+
+          <form onSubmit={handleSubmit} className={`space-y-4 ${DEMO_ENABLED ? '' : 'mt-8'}`} noValidate>
+            {isRegister && (
+              <TextField
+                label="Nom affiché"
+                name="displayName"
+                value={form.displayName}
+                onChange={update('displayName')}
+                error={error?.fieldErrors.displayName}
+                required
+              />
+            )}
             <TextField
-              label="Nom affiché"
-              name="displayName"
-              value={form.displayName}
-              onChange={update('displayName')}
-              error={error?.fieldErrors.displayName}
+              label="E-mail"
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={form.email}
+              onChange={update('email')}
+              error={error?.fieldErrors.email}
               required
             />
-          )}
-          <TextField
-            label="E-mail"
-            name="email"
-            type="email"
-            autoComplete="email"
-            value={form.email}
-            onChange={update('email')}
-            error={error?.fieldErrors.email}
-            required
-          />
-          <TextField
-            label="Mot de passe"
-            name="password"
-            type="password"
-            autoComplete={isRegister ? 'new-password' : 'current-password'}
-            value={form.password}
-            onChange={update('password')}
-            error={error?.fieldErrors.password}
-            required
-          />
+            <TextField
+              label="Mot de passe"
+              name="password"
+              type="password"
+              autoComplete={isRegister ? 'new-password' : 'current-password'}
+              value={form.password}
+              onChange={update('password')}
+              error={error?.fieldErrors.password}
+              required
+            />
 
-          {error && Object.keys(error.fieldErrors).length === 0 && (
-            <p role="alert" className="text-sm text-rose-600">
-              {error.message}
-            </p>
-          )}
+            {error && Object.keys(error.fieldErrors).length === 0 && (
+              <p role="alert" className="rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">
+                {error.message}
+              </p>
+            )}
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
-          >
-            {mutation.isPending ? 'Un instant…' : isRegister ? 'Créer mon compte' : 'Se connecter'}
-          </button>
-        </form>
-
-        {DEMO_ENABLED && (
-          <div className="mt-4 border-t border-slate-100 pt-4">
-            <button
-              type="button"
-              onClick={() => demoMutation.mutate()}
-              disabled={isPending}
-              className="w-full rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-200 disabled:opacity-60"
-            >
-              {demoMutation.isPending ? 'Connexion à la démo…' : '👀 Essayer avec le compte démo'}
+            <button type="submit" disabled={isPending} className={`w-full ${buttonClass('primary', 'lg')}`}>
+              {mutation.isPending ? 'Un instant…' : isRegister ? 'Créer mon compte' : 'Se connecter'}
             </button>
-            <p className="mt-2 text-center text-xs text-slate-400">Données fictives, réinitialisées chaque nuit.</p>
-          </div>
-        )}
+          </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
-          {isRegister ? 'Déjà un compte ? ' : 'Pas encore de compte ? '}
-          <Link to={isRegister ? '/login' : '/register'} className="font-medium text-indigo-600 hover:underline">
-            {isRegister ? 'Se connecter' : "S'inscrire"}
-          </Link>
-        </p>
-      </div>
-    </main>
+          <p className="mt-8 text-center text-sm text-ink-muted">
+            {isRegister ? 'Déjà un compte ? ' : 'Pas encore de compte ? '}
+            <Link to={isRegister ? '/login' : '/register'} className="font-semibold text-brand hover:underline">
+              {isRegister ? 'Se connecter' : "S'inscrire"}
+            </Link>
+          </p>
+        </div>
+      </main>
+    </div>
   )
 }

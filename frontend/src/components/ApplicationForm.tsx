@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { APPLICATION_STATUSES, type JobApplication, type JobApplicationInput } from '../api/types'
 import { STATUS_LABELS } from '../lib/status'
+import { buttonClass } from '../lib/button'
+import { fieldClass, labelClass } from '../lib/form'
 import { TextField } from './TextField'
 
 interface ApplicationFormProps {
@@ -12,7 +14,12 @@ interface ApplicationFormProps {
   onCancel: () => void
 }
 
-const today = () => new Date().toISOString().slice(0, 10)
+/** Date du jour dans le fuseau du navigateur (toISOString() donnerait la date UTC, fausse le soir). */
+const today = () => {
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
 
 export function ApplicationForm({ initial, isSaving, fieldErrors = {}, onSubmit, onDelete, onCancel }: ApplicationFormProps) {
   const [form, setForm] = useState({
@@ -49,13 +56,13 @@ export function ApplicationForm({ initial, isSaving, fieldErrors = {}, onSubmit,
       </div>
       <TextField label="Lien de l'offre" name="jobUrl" type="url" value={form.jobUrl} onChange={update('jobUrl')} error={fieldErrors.jobUrl} />
 
-      <label htmlFor="status" className="block text-sm font-medium text-slate-700">
+      <label htmlFor="status" className={labelClass}>
         Statut
         <select
           id="status"
           value={form.status}
           onChange={update('status')}
-          className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+          className={fieldClass}
         >
           {APPLICATION_STATUSES.map((status) => (
             <option key={status} value={status}>
@@ -65,30 +72,30 @@ export function ApplicationForm({ initial, isSaving, fieldErrors = {}, onSubmit,
         </select>
       </label>
 
-      <label htmlFor="notes" className="block text-sm font-medium text-slate-700">
+      <label htmlFor="notes" className={labelClass}>
         Notes
         <textarea
           id="notes"
           rows={3}
           value={form.notes}
           onChange={update('notes')}
-          className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+          className={fieldClass}
         />
       </label>
 
       <div className="flex items-center gap-2 pt-2">
         {onDelete && (
-          <button type="button" onClick={onDelete} className="rounded-lg px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50">
+          <button type="button" onClick={onDelete} className={buttonClass('danger')}>
             Supprimer
           </button>
         )}
-        <button type="button" onClick={onCancel} className="ml-auto rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+        <button type="button" onClick={onCancel} className={`ml-auto ${buttonClass('ghost')}`}>
           Annuler
         </button>
         <button
           type="submit"
           disabled={isSaving}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
+          className={buttonClass('primary')}
         >
           {isSaving ? 'Enregistrement…' : 'Enregistrer'}
         </button>

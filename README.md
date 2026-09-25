@@ -12,6 +12,7 @@ Clique sur **« Essayer avec le compte démo »** : aucune inscription n'est né
 
 ## ✨ Fonctionnalités
 
+- **Page d'accueil** présentant le produit, avec un aperçu du tableau construit à partir des vrais composants de l'application, et **mode clair / sombre**.
 - **Comptes utilisateurs** : inscription, connexion, authentification sans état par JWT.
 - **Kanban** : colonnes Envoyée → Relancée → Entretien → Offre / Refusée, avec **glisser-déposer**. La carte change de colonne tout de suite et revient à sa place si le serveur refuse le changement.
 - **Candidatures** : entreprise, poste, lieu, lien de l'offre, date, notes. Chaque carte indique depuis combien de jours elle n'a pas bougé.
@@ -46,7 +47,7 @@ Le back est découpé par fonctionnalité (`auth`, `user`, `jobapplication`, `re
 
 | | |
 |---|---|
-| **Front-end** | React 19, TypeScript, Vite, TanStack Query, React Router, dnd-kit, Tailwind CSS |
+| **Front-end** | React 19, TypeScript, Vite, TanStack Query, React Router, dnd-kit, Tailwind CSS 4 (thème à jetons sémantiques, mode sombre) |
 | **Back-end** | Java 21, Spring Boot 3.5 (Web, Data JPA, Security, OAuth2 Resource Server, Validation, Mail, Scheduling), springdoc-openapi |
 | **Base de données** | PostgreSQL 17, migrations Flyway |
 | **Tests** | JUnit 5, MockMvc, **Testcontainers** (vraie base PostgreSQL), Vitest, Testing Library |

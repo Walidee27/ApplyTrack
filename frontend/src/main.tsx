@@ -5,8 +5,11 @@ import { warmUpApi } from './api/client'
 import App from './App'
 import { AuthProvider } from './auth/AuthProvider'
 import { ServerWakeBanner } from './components/ServerWakeBanner'
+import { Toaster } from './components/Toaster'
+import { applyTheme } from './lib/theme'
 import './index.css'
 
+applyTheme()
 warmUpApi()
 
 const queryClient = new QueryClient({
@@ -20,6 +23,7 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <App />
       </AuthProvider>
+      <Toaster />
     </QueryClientProvider>
   </StrictMode>,
 )

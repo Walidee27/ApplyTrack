@@ -8,14 +8,14 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   REJECTED: 'Refusée',
 }
 
-// Palette vérifiée pour le daltonisme (deutéranopie, protanopie, tritanopie) :
-// rose-600 plutôt que rose-500 pour rester distinct d'emerald-500.
+// Couleurs définies dans index.css (--color-status-*), vérifiées pour le daltonisme
+// en mode clair comme en mode sombre
 export const STATUS_COLORS: Record<ApplicationStatus, string> = {
-  APPLIED: 'bg-sky-500',
-  FOLLOW_UP: 'bg-amber-500',
-  INTERVIEW: 'bg-violet-500',
-  OFFER: 'bg-emerald-500',
-  REJECTED: 'bg-rose-600',
+  APPLIED: 'bg-status-applied',
+  FOLLOW_UP: 'bg-status-follow-up',
+  INTERVIEW: 'bg-status-interview',
+  OFFER: 'bg-status-offer',
+  REJECTED: 'bg-status-rejected',
 }
 
 /** Statuts pour lesquels on attend encore une réponse de l'entreprise. */

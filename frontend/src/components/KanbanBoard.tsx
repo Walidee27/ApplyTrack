@@ -1,7 +1,8 @@
 import {
   DndContext,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useDroppable,
   useSensor,
   useSensors,
@@ -20,9 +21,11 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ applications, followUpAfterDays, onMove, onEdit }: KanbanBoardProps) {
-  // Distance minimale pour qu'un simple clic ne déclenche pas de glisser-déposer
+  // Souris : distance minimale pour qu'un clic ne déclenche pas de glisser-déposer.
+  // Tactile : appui long, pour que le doigt puisse encore faire défiler le tableau.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   )
   const columns = groupByStatus(applications)
@@ -35,8 +38,9 @@ export function KanbanBoard({ applications, followUpAfterDays, onMove, onEdit }:
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      {/* Colonnes de largeur minimale fixe : sur petit écran, le tableau défile horizontalement */}
-      <div className="grid auto-cols-[minmax(15rem,1fr)] grid-flow-col gap-4 overflow-x-auto pb-4">
+      {/* Colonnes de largeur minimale fixe : sur petit écran, le tableau défile horizontalement,
+          colonne par colonne sur mobile */}
+      <div className="-mx-4 grid snap-x snap-mandatory auto-cols-[85%] grid-flow-col gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:snap-none sm:auto-cols-[minmax(15rem,1fr)] sm:px-0">
         {APPLICATION_STATUSES.map((status) => (
           <KanbanColumn
             key={status}
@@ -66,16 +70,21 @@ function KanbanColumn({ status, applications, followUpAfterDays, onEdit }: Kanba
     <section
       ref={setNodeRef}
       aria-label={STATUS_LABELS[status]}
-      className={`min-h-64 rounded-2xl p-3 transition-colors ${isOver ? 'bg-indigo-50 ring-2 ring-indigo-200' : 'bg-slate-100'}`}
+      className={`min-h-72 snap-start rounded-2xl p-3 transition-colors ${isOver ? 'bg-brand-soft ring-2 ring-brand' : 'bg-surface-muted'}`}
     >
       <header className="mb-3 flex items-center gap-2 px-1">
-        <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[status]}`} />
-        <h2 className="text-sm font-semibold text-slate-700">{STATUS_LABELS[status]}</h2>
-        <span className="ml-auto rounded-full bg-white px-2 text-xs font-medium text-slate-500">
+        <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[status]}`} aria-hidden="true" />
+        <h2 className="text-sm font-semibold">{STATUS_LABELS[status]}</h2>
+        <span className="ml-auto rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-ink-muted ring-1 ring-line">
           {applications.length}
         </span>
       </header>
       <div className="space-y-2">
+        {applications.length === 0 && (
+          <p className="rounded-xl border border-dashed border-line px-3 py-6 text-center text-xs text-ink-faint">
+            Glisse une carte ici
+          </p>
+        )}
         {applications.map((application) => (
           <ApplicationCard
             key={application.id}
