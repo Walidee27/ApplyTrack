@@ -36,6 +36,48 @@ export const tokenStorage = {
   },
 }
 
+/**
+ * Requêtes lentes : l'hébergement gratuit met l'API en veille, et le premier appel peut prendre
+ * jusqu'à une minute. On notifie l'interface au-delà de SLOW_REQUEST_MS pour afficher un message.
+ */
+const SLOW_REQUEST_MS = 3000
+let slowRequests = 0
+const slowListeners = new Set<(isSlow: boolean) => void>()
+
+export function onSlowRequestChange(listener: (isSlow: boolean) => void): () => void {
+  slowListeners.add(listener)
+  return () => {
+    slowListeners.delete(listener)
+  }
+}
+
+function setSlowRequests(count: number) {
+  const wasSlow = slowRequests > 0
+  slowRequests = count
+  if (wasSlow !== slowRequests > 0) slowListeners.forEach((listener) => listener(slowRequests > 0))
+}
+
+async function trackSlowRequest<T>(request: Promise<T>): Promise<T> {
+  let flagged = false
+  const timer = setTimeout(() => {
+    flagged = true
+    setSlowRequests(slowRequests + 1)
+  }, SLOW_REQUEST_MS)
+  try {
+    return await request
+  } finally {
+    clearTimeout(timer)
+    if (flagged) setSlowRequests(slowRequests - 1)
+  }
+}
+
+/** Réveille l'API dès l'arrivée sur le site, avant même que l'utilisateur se connecte. */
+export function warmUpApi() {
+  fetch(`${API_URL}/actuator/health`).catch(() => {
+    // Sans importance : la vraie requête affichera l'erreur si l'API est vraiment indisponible
+  })
+}
+
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
   headers.set('Accept', 'application/json')
@@ -44,7 +86,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   const token = tokenStorage.get()
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
-  const response = await fetch(`${API_URL}${path}`, { ...init, headers })
+  const response = await trackSlowRequest(fetch(`${API_URL}${path}`, { ...init, headers }))
 
   if (!response.ok) {
     // Le back renvoie des erreurs au format RFC 9457 (ProblemDetail)

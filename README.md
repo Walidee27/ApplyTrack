@@ -77,6 +77,8 @@ Variables d'environnement de l'API (toutes ont une valeur par défaut pour le d�
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_STARTTLS` | Serveur SMTP (Mailpit sur `localhost:1025` par défaut) |
 | `MAIL_FROM`, `FRONTEND_URL` | Expéditeur des e-mails et lien vers le front inséré dans les relances |
 | `REMINDERS_ENABLED`, `REMINDERS_CRON` | Active la tâche de relance et règle son horaire (`0 0 8 * * *` = 8 h, heure de Paris) |
+| `DEMO_ENABLED` | Crée et réinitialise chaque nuit le compte de démo public |
+| `PORT` | Port HTTP (8080 par défaut, imposé par Render en production) |
 
 ## 🧪 Tests
 
@@ -86,6 +88,18 @@ cd frontend && npm test        # tests Vitest
 ```
 
 La CI GitHub Actions lance à chaque push le linter, la vérification des types, les tests et le build des deux applications, ainsi que la construction de l'image Docker de l'API.
+
+## ☁️ Déploiement
+
+| Composant | Hébergeur | Configuration |
+|---|---|---|
+| Base PostgreSQL | [Neon](https://neon.tech) | Offre gratuite, région Francfort |
+| API | [Render](https://render.com) | Blueprint [`render.yaml`](render.yaml), image construite depuis `backend/Dockerfile` |
+| Front | [Vercel](https://vercel.com) | Dossier racine `frontend`, [`vercel.json`](frontend/vercel.json) pour les routes de la SPA |
+
+- **Compte de démo** : avec `DEMO_ENABLED=true`, l'API crée `demo@example.com` / `demo12345` avec 11 candidatures réalistes, datées par rapport au jour courant. Le compte est **réinitialisé chaque nuit**. Côté front, `VITE_DEMO_ENABLED=true` affiche le bouton « Essayer avec le compte démo ».
+- **Mise en veille** : l'offre gratuite de Render endort l'API après 15 minutes d'inactivité. Le front réveille l'API dès l'ouverture du site et affiche un bandeau si une requête dépasse 3 secondes.
+- **JVM** : l'image limite la mémoire à 75 % de celle du conteneur (`MaxRAMPercentage`). Elle utilise environ 280 Mo sur les 512 Mo de l'offre gratuite.
 
 ## 📡 API
 

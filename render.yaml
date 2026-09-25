@@ -1,0 +1,32 @@
+# Blueprint Render : déploie l'API depuis backend/Dockerfile.
+# La base PostgreSQL est hébergée chez Neon (gratuite et permanente), le front chez Vercel.
+services:
+  - type: web
+    name: applytrack-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      # Connexion Neon, au format JDBC : jdbc:postgresql://<hôte>/<base>?sslmode=require
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      # Secret de signature des JWT, généré aléatoirement par Render
+      - key: JWT_SECRET
+        generateValue: true
+      # URL du front Vercel, ex. https://applytrack.vercel.app
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: DEMO_ENABLED
+        value: "true"
+      # À passer à true une fois un vrai serveur SMTP configuré (MAIL_HOST, MAIL_USERNAME…)
+      - key: REMINDERS_ENABLED
+        value: "false"

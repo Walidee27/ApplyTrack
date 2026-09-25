@@ -4,7 +4,12 @@ import { Link, useNavigate } from 'react-router'
 import { ApiError } from '../api/client'
 import { authApi } from '../api/endpoints'
 import { useAuth } from '../auth/useAuth'
+import type { AuthResponse } from '../api/types'
 import { TextField } from '../components/TextField'
+
+/** Compte public recréé chaque nuit par le back (voir DemoDataService), affiché si VITE_DEMO_ENABLED=true. */
+const DEMO_ACCOUNT = { email: 'demo@example.com', password: 'demo12345' }
+const DEMO_ENABLED = import.meta.env.VITE_DEMO_ENABLED === 'true'
 
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const isRegister = mode === 'register'
@@ -12,18 +17,27 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '', displayName: '' })
 
+  const onSuccess = (response: AuthResponse) => {
+    signIn(response)
+    navigate('/', { replace: true })
+  }
+
   const mutation = useMutation({
     mutationFn: () =>
       isRegister
         ? authApi.register(form)
         : authApi.login({ email: form.email, password: form.password }),
-    onSuccess: (response) => {
-      signIn(response)
-      navigate('/', { replace: true })
-    },
+    onSuccess,
   })
 
-  const error = mutation.error instanceof ApiError ? mutation.error : null
+  const demoMutation = useMutation({
+    mutationFn: () => authApi.login(DEMO_ACCOUNT),
+    onSuccess,
+  })
+
+  const failed = mutation.error ?? demoMutation.error
+  const error = failed instanceof ApiError ? failed : null
+  const isPending = mutation.isPending || demoMutation.isPending
   const update = (field: keyof typeof form) => (event: { target: { value: string } }) =>
     setForm((current) => ({ ...current, [field]: event.target.value }))
 
@@ -80,12 +94,26 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
 
           <button
             type="submit"
-            disabled={mutation.isPending}
+            disabled={isPending}
             className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
           >
             {mutation.isPending ? 'Un instant…' : isRegister ? 'Créer mon compte' : 'Se connecter'}
           </button>
         </form>
+
+        {DEMO_ENABLED && (
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <button
+              type="button"
+              onClick={() => demoMutation.mutate()}
+              disabled={isPending}
+              className="w-full rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-200 disabled:opacity-60"
+            >
+              {demoMutation.isPending ? 'Connexion à la démo…' : '👀 Essayer avec le compte démo'}
+            </button>
+            <p className="mt-2 text-center text-xs text-slate-400">Données fictives, réinitialisées chaque nuit.</p>
+          </div>
+        )}
 
         <p className="mt-6 text-center text-sm text-slate-500">
           {isRegister ? 'Déjà un compte ? ' : 'Pas encore de compte ? '}

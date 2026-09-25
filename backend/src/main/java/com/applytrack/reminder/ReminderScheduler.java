@@ -1,13 +1,11 @@
 package com.applytrack.reminder;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 /** Déclenche les relances chaque jour (8 h, heure de Paris, par défaut). Désactivable avec app.reminders.enabled=false. */
-@Configuration
-@EnableScheduling
+@Component
 @ConditionalOnProperty(prefix = "app.reminders", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ReminderScheduler {
 
